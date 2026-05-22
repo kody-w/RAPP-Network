@@ -26,6 +26,33 @@ Spec conformance (sibling to twin_egg_hatcher_agent.py):
     TWIN_LIFECYCLE_SPEC §2 — no parallel device-side registry.
   - tracker_export uses the canonical 32-hex rappid hash as project id.
 """
+__manifest__ = {
+    "schema": "rapp-agent/1.0",
+    "name": "@kody-w/project_twin_agent",
+    "version": "0.3.0",
+    "display_name": "ProjectTwin",
+    "description": (
+        "Single-file lifecycle agent for project-anchored brainstem twins. "
+        "Hatch a twin from the global kernel into any project's directory, "
+        "list/boot/chat/dispatch/stop/remove. Embeds the companion "
+        "ProjectWorkspace agent (scoped git+file ops per twin) as a string "
+        "constant — written into each new twin at hatch time. Pure transport "
+        "surface: chat/dispatch carry your natural-language message verbatim "
+        "to the twin(s); the twin's own LLM + agents decide what to do. "
+        "Spec-compliant with kody-w/RAPP (rappid/2.0, manifest, hatch-receipt). "
+        "Full spec: kody-w/RAPP-Network."
+    ),
+    "author": "kody-w",
+    "tags": [
+        "brainstem", "twin", "project", "hatch", "neighborhood",
+        "dispatch", "network", "lifecycle", "singleton", "rapp-network",
+    ],
+    "category": "integrations",
+    "quality_tier": "community",
+    "requires_env": [],
+    "dependencies": ["@rapp/basic_agent"],
+}
+
 import json
 import os
 import re
