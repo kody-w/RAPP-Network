@@ -1216,8 +1216,6 @@ def _job_status(job_id: str) -> dict:
     return {
         "ok": True,
         "job_id": job_id,
-        "topic": meta.get("topic"),
-        "apply": meta.get("apply"),
         "dispatched_at": meta.get("dispatched_at"),
         "total": total,
         "counts": counts,

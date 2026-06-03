@@ -42,6 +42,8 @@ README_MD = REPO_ROOT / "README.md"
 UPSTREAM_PIN_FILES = [
     "CONSTITUTION.md",
     "NEIGHBORHOOD_PROTOCOL.md",
+    "ECOSYSTEM.md",
+    "ECOSYSTEM_MAP.md",
     "pages/docs/SPEC.md",
     "pages/docs/ESTATE_SPEC.md",
     "pages/docs/TWIN_LIFECYCLE_SPEC.md",
