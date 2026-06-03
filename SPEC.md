@@ -50,7 +50,7 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
 ```
 ~/.brainstem/                              — operator's brainstem + identity
   rappid.json                              — rapp-rappid/2.0 (operator)
-  estate.json                              — rapp-estate/1.1 (door catalog)
+  estate.json                              — `rapp-estate/1.1` (door catalog)
   src/rapp_brainstem/                      — the global brainstem
     agents/project_twin_agent.py           — THIS agent (the network's one drop-in)
     agents/*_agent.py                      — other agents the operator has
@@ -107,7 +107,7 @@ Every project twin's workspace MUST contain `manifest.json`:
 }
 ```
 
-`port_hint` is how the canonical Twin agent (per `NEIGHBORHOOD_PROTOCOL.md` §6) boots the twin. The auto-port-pick algorithm scans every `~/.rapp/twins/*/manifest.json::port_hint` and picks the next free port starting at `7073` — no parallel port registry.
+`port_hint` is how the canonical Twin agent boots the twin. The auto-port-pick algorithm is owned by this repo (this §6 / `project_twin_agent.py::_pick_port`): it scans every `~/.rapp/twins/*/manifest.json::port_hint` and picks the next free port starting at `7073` — no parallel port registry. (Upstream `NEIGHBORHOOD_PROTOCOL.md` §6 covers twin-chat, the social layer — not port allocation.)
 
 ## 7. Transport (`rapp-twin-transport/1.0`)
 
@@ -126,6 +126,8 @@ The agent's surface, by verb:
 | `await_job` | `job_id?`, `timeout?` | Blocks until `complete + failed == total` or `timeout`. |
 
 **`message` is never templated or inspected.** A user (or the global LLM) types whatever they want to ask the twin; the agent relays it verbatim. The twin's own LLM + the twin's own agents decide what to do.
+
+This transport is itself an instance of **Chat Is The Only Wire** (`kody-w/RAPP` [`CONSTITUTION.md`](https://github.com/kody-w/RAPP/blob/main/CONSTITUTION.md) Article XXV): each twin's `127.0.0.1:<port>/chat` is the universal interface, and every verb above is just a Layer-2 caller relaying the same verbatim chat envelope. The global brainstem's `ProjectTwin` verbs are therefore **not** a new unit or taxonomy — they are a relay, exactly like an MCP host. An MCP client over stdio (via [`kody-w/rapp-mcp`](https://github.com/kody-w/rapp-mcp)'s `rapp_brainstem_mcp.py`, `rapp-mcp-spec/1.0`; or the content-addressed static profile `rapp-static-mcp/1.0`) is a peer Layer-2 caller of the same `/chat` — MCP is transport realizing this wire, not a parallel abstraction. See `kody-w/RAPP` [`ECOSYSTEM.md`](https://github.com/kody-w/RAPP/blob/main/ECOSYSTEM.md) for the ecosystem framing.
 
 ## 8. Job state (`rapp-project-twin-job/1.0`)
 
