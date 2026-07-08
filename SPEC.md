@@ -37,7 +37,7 @@ project_twin_agent.py
 Hatching a project twin:
 1. Writes the embedded `_PROJECT_WORKSPACE_AGENT_SRC` to `<target>/agents/project_workspace_agent.py`.
 2. Copies the global brainstem's kernel files (`brainstem.py`, `local_storage.py`, `start.sh`, `index.html`, etc.) verbatim.
-3. Mints / reuses a `rapp-rappid/2.0` per `kody-w/RAPP/pages/docs/ESTATE_SPEC.md` §1.
+3. Mints / reuses the consolidated **Eternity** rappid `rappid:@<owner>/<slug>:<64hex>` (record schema `rapp-rappid/2.0`; `kind: "project"` lives in the record, not the string) per `kody-w/RAPP/pages/docs/ESTATE_SPEC.md` §1 — never a legacy `v2:` string.
 4. Writes `manifest.json` (§6 below) with the chosen `port_hint`.
 5. Symlinks `~/.rapp/twins/<rappid-hash>/` to the project anchor so any twin-aware tool finds it.
 
@@ -56,7 +56,7 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
     agents/*_agent.py                      — other agents the operator has
 
 ~/.rapp/                                   — device-wide twin estate root
-  twins/<32-hex-rappid-hash>/              — one dir per twin (symlink for project twins)
+  twins/<rappid-hash>/                     — one dir per twin (symlink for project twins)
     rappid.json                            — rapp-rappid/2.0
     manifest.json                          — rapp-twin-manifest/1.0  (§6)
     HATCH_RECEIPT.json                     — provenance
@@ -70,24 +70,24 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
 
 The canonical twin path is `~/.rapp/twins/<hash>/`. For project twins, that path is a **symlink** to the project anchor. Tools that scan `~/.rapp/twins/` see project twins exactly like egg-hatched ones.
 
-## 5. Identity (compat with `rapp-rappid/2.0`)
+## 5. Identity (`rapp-rappid/2.0`, Eternity form)
 
-Every project twin's rappid follows the upstream v2 format verbatim:
+Every project twin's rappid is the consolidated **Eternity** form (CONSTITUTION Art. XXXIV.1, locked 2026-06-03), verbatim from upstream [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1:
 
 ```
-rappid:v2:project:@<owner>/<repo>:<32-hex>@github.com/<owner>/<repo>
+rappid:@<owner>/<slug>:<64hex>
 ```
 
 - `<owner>` is derived from `git remote get-url origin` when available; falls back to the operator's `github` field in `~/.brainstem/rappid.json`; falls back to the literal string `local`.
-- `<repo>` is derived from the same remote; falls back to `<project-slug>-brainstem`.
-- `<32-hex>` is `uuid.uuid4().hex` minted at first hatch and **preserved verbatim** on every re-hatch (re-hatching is idempotent — same project path, same rappid).
+- `<slug>` (the repo) is derived from the same remote; falls back to `<project-slug>-brainstem`.
+- `<64hex>` is `sha256("<owner>/<slug>")` — a PKI-free, self-locating **content-address**, deterministic so re-hatching the same project (same `@<owner>/<slug>`) yields the same rappid (re-hatching is idempotent). `kind` (`"project"`) lives in the `rappid.json` RECORD, **not** the string.
 - `parent_rappid` is the operator's rappid from `~/.brainstem/rappid.json::rappid`.
+
+**Legacy v2 is read-only.** A pre-existing `rappid:v2:project:@<owner>/<repo>:<32hex>@github.com/<owner>/<repo>` string is READ forever and **canonicalized on read** to the Eternity form above (hash preserved) — **never emitted**. `project_twin_agent.py` canonicalizes any legacy rappid it re-hatches; `door_address.py::canonicalize_rappid` is the reference.
 
 The rappid IS the global address per [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1. No URL has to resolve for the rappid to be valid. **This is the load-bearing offline guarantee.**
 
-`kind: "project"` is in use across `kody-w/RAPP` and this network (the AIBAST twin and others ship with it). The constitutionally-frozen list of valid kinds is in [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1.
-
-**Known drift signal as of this draft:** the upstream frozen list reads `twin, neighborhood, ant-farm, braintrust, workspace, hatched, rapplication, prototype, operator`. `project` is not on that list, but real twins on operator devices ship `kind: "project"` today. Resolution requires either (a) an amendment to add `project` to the frozen list upstream, or (b) this network adopting `workspace` (the closest existing kind). `scripts/cross_validate.py` will continue to WARN on this until one side moves.
+`kind: "project"` is a **ratified** `front_door` kind (ESTATE_SPEC §1, amended 2026-06-02 per CONSTITUTION Art. XLVI.2 to ratify the single-presence kinds already shipped across the kernel, RAR, and this network); the AIBAST twin and others ship with it. The constitutionally-frozen list of valid kinds is in [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1.
 
 ## 6. Manifest contract (`rapp-twin-manifest/1.0`)
 
@@ -96,8 +96,8 @@ Every project twin's workspace MUST contain `manifest.json`:
 ```json
 {
   "schema": "rapp-twin-manifest/1.0",
-  "rappid": "rappid:v2:project:@kody-w/bchydro-brainstem:8aeba5547a4b4b4a93e6328aaf31eeef@github.com/kody-w/bchydro-brainstem",
-  "hash": "8aeba5547a4b4b4a93e6328aaf31eeef",
+  "rappid": "rappid:@kody-w/bchydro-brainstem:7fa21d6eb9cb0ad9f85be879101378b6b287b4a98770c4aa09d4e86dbfea8f0d",
+  "hash": "7fa21d6eb9cb0ad9f85be879101378b6b287b4a98770c4aa09d4e86dbfea8f0d",
   "name": "bchydro",
   "kind": "project",
   "port_hint": 7074,
