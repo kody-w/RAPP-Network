@@ -100,7 +100,7 @@ class Upstream:
 SCHEMA_RE = re.compile(r"`(rapp-[a-z][a-z0-9-]*\/[0-9]+\.[0-9]+(?:\.[0-9]+)?)`")
 KIND_RE = re.compile(r"^`kind: \"([a-z][a-z0-9-]*)\"`", re.MULTILINE)
 RAPPID_FORMAT_RE = re.compile(
-    r"```\s*\n(rappid:v2:[^`\n]+)\s*\n```"
+    r"```\s*\n(rappid:@[^`\n]+)\s*\n```"
 )
 
 
@@ -152,13 +152,13 @@ def check_rappid_format(spec: str, up: Upstream) -> tuple[bool, str | None, str 
     if not estate:
         return False, here, "upstream ESTATE_SPEC.md unreachable (try setting RAPP_REPO=/path/to/clone)"
     # The upstream format is in a fenced block too.
-    m = re.search(r"```\s*\n(rappid:v2:[^`\n]+)\s*\n```", estate)
+    m = re.search(r"```\s*\n(rappid:@[^`\n]+)\s*\n```", estate)
     if not m:
         return False, here, "upstream ESTATE_SPEC.md has no rappid format block"
     there = m.group(1).strip()
-    # Compare structurally — normalize both placeholders (<owner>, <kind>, ...) and
-    # concrete tokens (project, twin, kody-w, etc.) to a single wildcard so the
-    # shape comparison sees only the structural form `rappid:v2:_:@_/_:_@github.com/_/_`.
+    # Compare structurally — normalize both placeholders (<owner>, <slug>, ...) and
+    # concrete tokens (kody-w, hex, etc.) to a single wildcard so the shape
+    # comparison sees only the structural Eternity form `rappid:@_/_:_`.
     def normalize(s: str) -> str:
         s = re.sub(r"<[^>]+>", "_", s)            # <owner> → _
         s = re.sub(r"[A-Za-z0-9-]+", "_", s)      # project / kody-w / hex → _
@@ -173,8 +173,10 @@ def check_rappid_format(spec: str, up: Upstream) -> tuple[bool, str | None, str 
 def check_kinds(spec: str, up: Upstream) -> list[tuple[str, bool, str | None]]:
     kinds = extract_kinds(spec)
     estate = up.read("pages/docs/ESTATE_SPEC.md") or ""
-    # Frozen kinds list lives in ESTATE_SPEC §1. Permissive grep.
-    m = re.search(r"\*\*Valid kinds\*\*[^.]*?:\s*([^.]+)\.", estate)
+    # Frozen kinds list lives in ESTATE_SPEC §1 (one line, front_door + gate kinds
+    # in backticks). Grab the whole "Valid kinds" line — dot-tolerant, since the
+    # 2026-06-02 amendment note ("Art. XLVI.2") contains periods.
+    m = re.search(r"\*\*Valid kinds\*\*(.+)", estate)
     upstream_kinds = set()
     if m:
         for k in re.findall(r"`([a-z][a-z0-9-]*)`", m.group(1)):

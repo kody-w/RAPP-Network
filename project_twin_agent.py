@@ -24,7 +24,7 @@ Spec conformance (sibling to twin_egg_hatcher_agent.py):
     brainstem's built-in Twin agent (and any other twin-aware tool) picks
     it up automatically. Filesystem is the source of truth per
     TWIN_LIFECYCLE_SPEC §2 — no parallel device-side registry.
-  - tracker_export uses the canonical 32-hex rappid hash as project id.
+  - tracker_export uses the canonical rappid hash (64-hex Eternity; legacy hashes preserved) as project id.
 """
 __manifest__ = {
     "schema": "rapp-agent/1.0",
@@ -53,6 +53,7 @@ __manifest__ = {
     "dependencies": ["@rapp/basic_agent"],
 }
 
+import hashlib
 import json
 import os
 import re
@@ -427,7 +428,9 @@ class ProjectWorkspaceAgent(BasicAgent):
 
 
 
-_HASH_RE = re.compile(r":([a-f0-9]{32})@")
+_HASH_RE = re.compile(r":([a-f0-9]{32})@")               # legacy v2: :<32hex>@host
+_ETERNITY_HASH_RE = re.compile(r":([a-f0-9]{32,64})$")   # Eternity: terminal :<hash>
+_CANON_RE = re.compile(r"^rappid:@[^/]+/[^:]+:[a-f0-9]{32,64}$")  # rappid:@<owner>/<slug>:<hash>
 _AGENT_NAME_RE = re.compile(r"""self\.name\s*=\s*['"]([^'"]+)['"]""")
 _AGENT_DESC_RE = re.compile(r"""['"]description['"]\s*:\s*\(?\s*['"]([^'"]+)['"]""")
 
@@ -441,15 +444,40 @@ def _global_brainstem_dir() -> Path:
 
 
 def _hash_from_rappid(rappid: str) -> str:
+    """Extract the identity hash from any rappid form (Eternity or legacy)."""
     if rappid and rappid.startswith("rappid:"):
-        m = _HASH_RE.search(rappid)
+        m = _ETERNITY_HASH_RE.search(rappid)   # canonical Eternity: terminal :<hash>
+        if m:
+            return m.group(1)
+        m = _HASH_RE.search(rappid)            # legacy v2: :<32hex>@host
         if m:
             return m.group(1)
     return rappid or ""
 
 
-def _mint_v2_rappid(kind: str, owner: str, repo: str) -> str:
-    return f"rappid:v2:{kind}:@{owner}/{repo}:{uuid.uuid4().hex}@github.com/{owner}/{repo}"
+def _mint_eternity_rappid(owner: str, repo: str) -> str:
+    """Mint the consolidated Eternity rappid (CONSTITUTION Art. XXXIV.1, locked
+    2026-06-03): rappid:@<owner>/<slug>:<64hex> where <64hex> = sha256("<owner>/<slug>").
+    A PKI-free, self-locating content-address; `kind` lives in the record, not the
+    string. Deterministic -> re-hatching the same @<owner>/<slug> is idempotent.
+    The legacy rappid:v2:<kind>:@<owner>/<repo>:<32hex>@github.com/... form is
+    read-only/canonicalized on read (see _canonicalize_rappid), NEVER emitted.
+    """
+    return f"rappid:@{owner}/{repo}:{hashlib.sha256(f'{owner}/{repo}'.encode()).hexdigest()}"
+
+
+def _canonicalize_rappid(rappid: str, owner: str, repo: str) -> str:
+    """Canonicalize any legacy rappid to the consolidated Eternity form
+    rappid:@<owner>/<slug>:<hash>, PRESERVING the hash (a v2 string drops its
+    v2:/<kind>/@host decorations). An already-canonical string is returned as-is;
+    a hash-less/unknown form falls back to a fresh Eternity mint. Never emits v2.
+    """
+    if rappid and _CANON_RE.match(rappid):
+        return rappid
+    h = _hash_from_rappid(rappid)
+    if h and h != rappid:
+        return f"rappid:@{owner}/{repo}:{h}"
+    return _mint_eternity_rappid(owner, repo)
 
 
 def _slug(s: str) -> str:
@@ -907,12 +935,15 @@ def _do_hatch(**kwargs) -> dict:
         try:
             existing = json.loads(existing_rappid_path.read_text())
             if existing.get("schema", "").startswith("rapp-rappid/"):
-                rappid = existing.get("rappid")
-                preserved.append("rappid.json (reused existing rappid)")
+                prior = existing.get("rappid")
+                if prior:
+                    # Canonicalize any legacy v2 string on read; never re-emit v2.
+                    rappid = _canonicalize_rappid(prior, owner, repo)
+                    preserved.append("rappid.json (reused existing rappid)")
         except (json.JSONDecodeError, OSError):
             pass
     if not rappid:
-        rappid = _mint_v2_rappid(kind="project", owner=owner, repo=repo)
+        rappid = _mint_eternity_rappid(owner, repo)
     twin_hash = _hash_from_rappid(rappid)
     now = datetime.now(timezone.utc).isoformat()
 
