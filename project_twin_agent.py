@@ -456,14 +456,17 @@ def _hash_from_rappid(rappid: str) -> str:
 
 
 def _mint_eternity_rappid(owner: str, repo: str) -> str:
-    """Mint the consolidated Eternity rappid (CONSTITUTION Art. XXXIV.1, locked
-    2026-06-03): rappid:@<owner>/<slug>:<64hex> where <64hex> = sha256("<owner>/<slug>").
-    A PKI-free, self-locating content-address; `kind` lives in the record, not the
-    string. Deterministic -> re-hatching the same @<owner>/<slug> is idempotent.
-    The legacy rappid:v2:<kind>:@<owner>/<repo>:<32hex>@github.com/... form is
-    read-only/canonicalized on read (see _canonicalize_rappid), NEVER emitted.
+    """Mint the consolidated Eternity rappid (CONSTITUTION Art. XXXIV.1/XXXVI.1,
+    locked 2026-06-03): rappid:@<owner>/<slug>:<64hex>. The 64hex is a keyless,
+    stable identity hash — sha256 of a fresh UUID (keyless organisms use a stable
+    UUID/commit-derived hash per Art. XXXVI.1) — computed **independent of the
+    slug**; it is NEVER sha256("<owner>/<repo>"). The slug/@<owner> is location
+    sugar; the hash is the sole join key, `kind` lives in the record. Re-hatch
+    idempotency comes from reusing the stored rappid.json (see _hatch), not from
+    hashing the location. The legacy rappid:v2:<kind>:@<owner>/<repo>:<32hex>@github.com/...
+    form is read-only/canonicalized on read (see _canonicalize_rappid), NEVER emitted.
     """
-    return f"rappid:@{owner}/{repo}:{hashlib.sha256(f'{owner}/{repo}'.encode()).hexdigest()}"
+    return f"rappid:@{owner}/{repo}:{hashlib.sha256(uuid.uuid4().bytes).hexdigest()}"
 
 
 def _canonicalize_rappid(rappid: str, owner: str, repo: str) -> str:
