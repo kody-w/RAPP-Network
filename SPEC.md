@@ -72,7 +72,7 @@ The canonical twin path is `~/.rapp/twins/<hash>/`. For project twins, that path
 
 ## 5. Identity (`rapp-rappid/2.0`, Eternity form)
 
-Every project twin's rappid is the consolidated **Eternity** form (CONSTITUTION Art. XXXIV.1, locked 2026-06-03), verbatim from upstream [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1:
+Every project twin's rappid is the consolidated **Eternity** form (CONSTITUTION Art. XXXIV.1/XXXVI.1, locked 2026-06-03; identity standard `rapp-eternity/1.0`, to which the `rapp-rappid/2.0` record schema defers), verbatim from upstream [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1:
 
 ```
 rappid:@<owner>/<slug>:<64hex>
@@ -80,7 +80,7 @@ rappid:@<owner>/<slug>:<64hex>
 
 - `<owner>` is derived from `git remote get-url origin` when available; falls back to the operator's `github` field in `~/.brainstem/rappid.json`; falls back to the literal string `local`.
 - `<slug>` (the repo) is derived from the same remote; falls back to `<project-slug>-brainstem`.
-- `<64hex>` is `sha256("<owner>/<slug>")` — a PKI-free, self-locating **content-address**, deterministic so re-hatching the same project (same `@<owner>/<slug>`) yields the same rappid (re-hatching is idempotent). `kind` (`"project"`) lives in the `rappid.json` RECORD, **not** the string.
+- `<64hex>` is a **keyless identity hash** — `sha256` of a fresh UUID (keyless organisms use a stable UUID/commit-derived hash per CONSTITUTION Art. XXXVI.1), computed **independent of the slug**; it is **never** `sha256("<owner>/<slug>")`. The `@<owner>/<slug>` is location sugar; the hash is the sole join key, and `kind` (`"project"`) lives in the `rappid.json` RECORD, **not** the string. Re-hatch is idempotent because it **reuses the stored `rappid.json`** (the hash is preserved, legacy v2 canonicalized on read) — not because the hash is a function of the location.
 - `parent_rappid` is the operator's rappid from `~/.brainstem/rappid.json::rappid`.
 
 **Legacy v2 is read-only.** A pre-existing `rappid:v2:project:@<owner>/<repo>:<32hex>@github.com/<owner>/<repo>` string is READ forever and **canonicalized on read** to the Eternity form above (hash preserved) — **never emitted**. `project_twin_agent.py` canonicalizes any legacy rappid it re-hatches; `door_address.py::canonicalize_rappid` is the reference.
@@ -96,8 +96,8 @@ Every project twin's workspace MUST contain `manifest.json`:
 ```json
 {
   "schema": "rapp-twin-manifest/1.0",
-  "rappid": "rappid:@kody-w/bchydro-brainstem:7fa21d6eb9cb0ad9f85be879101378b6b287b4a98770c4aa09d4e86dbfea8f0d",
-  "hash": "7fa21d6eb9cb0ad9f85be879101378b6b287b4a98770c4aa09d4e86dbfea8f0d",
+  "rappid": "rappid:@kody-w/bchydro-brainstem:689266b7f523c61c6e9a331c02c745e4bef08a97c6a3f8c4db019edd582a42f0",
+  "hash": "689266b7f523c61c6e9a331c02c745e4bef08a97c6a3f8c4db019edd582a42f0",
   "name": "bchydro",
   "kind": "project",
   "port_hint": 7074,
