@@ -16,7 +16,7 @@ neighborhood through natural language:
   action=remove       Unlink twin's canonical entry (and optionally wipe anchor).
 
 Spec conformance (sibling to twin_egg_hatcher_agent.py):
-  - rappid.json schema rapp-rappid/2.0, kind="project", parent_rappid
+  - rappid.json schema rapp/1, kind="project", parent_rappid
     from ~/.brainstem/rappid.json. Same shape twin_egg_hatcher writes.
   - manifest.json schema rapp-twin-manifest/1.0 with port_hint.
   - HATCH_RECEIPT.json same fields the canonical hatcher writes.
@@ -458,15 +458,19 @@ def _hash_from_rappid(rappid: str) -> str:
 def _mint_eternity_rappid(owner: str, repo: str) -> str:
     """Mint the consolidated Eternity rappid (CONSTITUTION Art. XXXIV.1/XXXVI.1,
     locked 2026-06-03): rappid:@<owner>/<slug>:<64hex>. The 64hex is a keyless,
-    stable identity hash — sha256 of a fresh UUID (keyless organisms use a stable
-    UUID/commit-derived hash per Art. XXXVI.1) — computed **independent of the
-    slug**; it is NEVER sha256("<owner>/<repo>"). The slug/@<owner> is location
+    stable identity hash — Hb("rapp/1:rappid", uuid4) = sha256(b"rapp/1:rappid\\n"+uuid4)
+    (§6.2 keyless, domain-separated) — computed **independent of the slug**; it is NEVER sha256("<owner>/<repo>"). The slug/@<owner> is location
     sugar; the hash is the sole join key, `kind` lives in the record. Re-hatch
     idempotency comes from reusing the stored rappid.json (see _hatch), not from
     hashing the location. The legacy rappid:v2:<kind>:@<owner>/<repo>:<32hex>@github.com/...
     form is read-only/canonicalized on read (see _canonicalize_rappid), NEVER emitted.
     """
-    return f"rappid:@{owner}/{repo}:{hashlib.sha256(uuid.uuid4().bytes).hexdigest()}"
+    import re as _re
+    _o = _re.sub(r"[^a-z0-9]+", "-", (owner or "anon").lower()).strip("-") or "anon"
+    _r = _re.sub(r"[^a-z0-9]+", "-", (repo or "x").lower()).strip("-") or "x"
+    # §6.2 canonical keyless mint: Hb("rapp/1:rappid", uuid4) — domain-separated.
+    tail = hashlib.sha256(b"rapp/1:rappid\n" + uuid.uuid4().bytes).hexdigest()
+    return f"rappid:@{_o}/{_r}:{tail}"
 
 
 def _canonicalize_rappid(rappid: str, owner: str, repo: str) -> str:
@@ -972,7 +976,7 @@ def _do_hatch(**kwargs) -> dict:
         port = int(port)
 
     rappid_doc = {
-        "schema": "rapp-rappid/2.0",
+        "schema": "rapp/1",
         "rappid": rappid,
         "hash": twin_hash,
         "kind": "project",

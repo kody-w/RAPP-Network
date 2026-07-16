@@ -37,7 +37,7 @@ project_twin_agent.py
 Hatching a project twin:
 1. Writes the embedded `_PROJECT_WORKSPACE_AGENT_SRC` to `<target>/agents/project_workspace_agent.py`.
 2. Copies the global brainstem's kernel files (`brainstem.py`, `local_storage.py`, `start.sh`, `index.html`, etc.) verbatim.
-3. Mints / reuses the consolidated **Eternity** rappid `rappid:@<owner>/<slug>:<64hex>` (record schema `rapp-rappid/2.0`; `kind: "project"` lives in the record, not the string) per `kody-w/RAPP/pages/docs/ESTATE_SPEC.md` §1 — never a legacy `v2:` string.
+3. Mints / reuses the consolidated **Eternity** rappid `rappid:@<owner>/<slug>:<64hex>` (record schema `rapp/1`; `kind: "project"` lives in the record, not the string) per `kody-w/RAPP/pages/docs/ESTATE_SPEC.md` §1 — never a legacy `v2:` string.
 4. Writes `manifest.json` (§6 below) with the chosen `port_hint`.
 5. Symlinks `~/.rapp/twins/<rappid-hash>/` to the project anchor so any twin-aware tool finds it.
 
@@ -49,7 +49,7 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
 
 ```
 ~/.brainstem/                              — operator's brainstem + identity
-  rappid.json                              — rapp-rappid/2.0 (operator)
+  rappid.json                              — rapp/1 (operator)
   estate.json                              — `rapp-estate/1.1` (door catalog)
   src/rapp_brainstem/                      — the global brainstem
     agents/project_twin_agent.py           — THIS agent (the network's one drop-in)
@@ -57,7 +57,7 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
 
 ~/.rapp/                                   — device-wide twin estate root
   twins/<rappid-hash>/                     — one dir per twin (symlink for project twins)
-    rappid.json                            — rapp-rappid/2.0
+    rappid.json                            — rapp/1
     manifest.json                          — rapp-twin-manifest/1.0  (§6)
     HATCH_RECEIPT.json                     — provenance
     brainstem.py · soul.md · agents/...    — full brainstem layout
@@ -70,9 +70,9 @@ Per [`TWIN_LIFECYCLE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/do
 
 The canonical twin path is `~/.rapp/twins/<hash>/`. For project twins, that path is a **symlink** to the project anchor. Tools that scan `~/.rapp/twins/` see project twins exactly like egg-hatched ones.
 
-## 5. Identity (`rapp-rappid/2.0`, Eternity form)
+## 5. Identity (`rapp/1`, Eternity form)
 
-Every project twin's rappid is the consolidated **Eternity** form (CONSTITUTION Art. XXXIV.1/XXXVI.1, locked 2026-06-03; identity standard `rapp-eternity/1.0`, to which the `rapp-rappid/2.0` record schema defers), verbatim from upstream [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1:
+Every project twin's rappid is the consolidated **Eternity** form (CONSTITUTION Art. XXXIV.1/XXXVI.1, locked 2026-06-03; identity standard subsumed by `rapp/1` (formerly styled `rapp-eternity/1.0` / `rapp-rappid/2.0`)), verbatim from upstream [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1:
 
 ```
 rappid:@<owner>/<slug>:<64hex>
@@ -80,7 +80,7 @@ rappid:@<owner>/<slug>:<64hex>
 
 - `<owner>` is derived from `git remote get-url origin` when available; falls back to the operator's `github` field in `~/.brainstem/rappid.json`; falls back to the literal string `local`.
 - `<slug>` (the repo) is derived from the same remote; falls back to `<project-slug>-brainstem`.
-- `<64hex>` is a **keyless identity hash** — `sha256` of a fresh UUID (keyless organisms use a stable UUID/commit-derived hash per CONSTITUTION Art. XXXVI.1), computed **independent of the slug**; it is **never** `sha256("<owner>/<slug>")`. The `@<owner>/<slug>` is location sugar; the hash is the sole join key, and `kind` (`"project"`) lives in the `rappid.json` RECORD, **not** the string. Re-hatch is idempotent because it **reuses the stored `rappid.json`** (the hash is preserved, legacy v2 canonicalized on read) — not because the hash is a function of the location.
+- `<64hex>` is a **keyless identity hash** — `Hb("rapp/1:rappid", uuid4)` = `sha256(b"rapp/1:rappid\n"+uuid4)` (§6.2 keyless, domain-separated), computed **independent of the slug**; it is **never** `sha256("<owner>/<slug>")`. The `@<owner>/<slug>` is location sugar; the hash is the sole join key, and `kind` (`"project"`) lives in the `rappid.json` RECORD, **not** the string. Re-hatch is idempotent because it **reuses the stored `rappid.json`** (the hash is preserved, legacy v2 canonicalized on read) — not because the hash is a function of the location.
 - `parent_rappid` is the operator's rappid from `~/.brainstem/rappid.json::rappid`.
 
 **Legacy v2 is read-only.** A pre-existing `rappid:v2:project:@<owner>/<repo>:<32hex>@github.com/<owner>/<repo>` string is READ forever and **canonicalized on read** to the Eternity form above (hash preserved) — **never emitted**. `project_twin_agent.py` canonicalizes any legacy rappid it re-hatches; `door_address.py::canonicalize_rappid` is the reference.
@@ -177,7 +177,7 @@ A device that has the operator's `~/.brainstem/rappid.json` and the global brain
 
 `scripts/cross_validate.py` mechanically checks alignment between this repo and `kody-w/RAPP`:
 
-1. Every schema string referenced in this SPEC (`rapp-rappid/2.0`, `rapp-twin-manifest/1.0`, `rapp-project-twin-job/1.0`, etc.) MUST appear at least once in `kody-w/RAPP` source — either declared there or quoted there.
+1. Every schema string referenced in this SPEC (`rapp/1`, `rapp-twin-manifest/1.0`, `rapp-project-twin-job/1.0`, etc.) MUST appear at least once in `kody-w/RAPP` source — either declared there or quoted there.
 2. The valid-kinds list in `ESTATE_SPEC.md` §1 SHOULD include every `kind` value this spec emits (currently: `project`).
 3. The rappid format string in §5 of this spec MUST match the format declared in `ESTATE_SPEC.md` §1 verbatim.
 4. File paths this spec references inside `kody-w/RAPP` MUST exist there.
