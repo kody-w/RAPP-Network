@@ -87,7 +87,7 @@ rappid:@<owner>/<slug>:<64hex>
 
 The rappid IS the global address per [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1. No URL has to resolve for the rappid to be valid. **This is the load-bearing offline guarantee.**
 
-`kind: "project"` is a **ratified** `front_door` kind (ESTATE_SPEC §1, amended 2026-06-02 per CONSTITUTION Art. XLVI.2 to ratify the single-presence kinds already shipped across the kernel, RAR, and this network); the AIBAST twin and others ship with it. The constitutionally-frozen list of valid kinds is in [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1.
+`kind: "project"` is a **ratified** `front_door` kind (ESTATE_SPEC §1, amended 2026-06-02 per CONSTITUTION Art. XLVI.2 to ratify the single-presence kinds already shipped across the kernel, RAR, and this network); the the work distro twin and others ship with it. The constitutionally-frozen list of valid kinds is in [`ESTATE_SPEC.md`](https://github.com/kody-w/RAPP/blob/main/pages/docs/ESTATE_SPEC.md) §1.
 
 ## 6. Manifest contract (`rapp-twin-manifest/1.0`)
 
@@ -96,12 +96,12 @@ Every project twin's workspace MUST contain `manifest.json`:
 ```json
 {
   "schema": "rapp-twin-manifest/1.0",
-  "rappid": "rappid:@kody-w/bchydro-brainstem:689266b7f523c61c6e9a331c02c745e4bef08a97c6a3f8c4db019edd582a42f0",
+  "rappid": "@00000000000000000000000000000000000000000000000000000000000000",
   "hash": "689266b7f523c61c6e9a331c02c745e4bef08a97c6a3f8c4db019edd582a42f0",
-  "name": "bchydro",
+  "name": "example-co",
   "kind": "project",
   "port_hint": 7074,
-  "anchor_path": "/Users/.../rapp_projects/bchydro/.brainstem/src/rapp_brainstem",
+  "anchor_path": "/Users/.../rapp_projects/example-co/.brainstem/src/rapp_brainstem",
   "url": "http://localhost:7074",
   "updated_at": "2026-05-21T15:58:41Z"
 }
@@ -169,7 +169,7 @@ The network is functionally offline-clean:
 | `hatch`, `hatch_all` | None. File copies + uuid mint. No GitHub fetch. |
 | `chat`, `dispatch` (the transport itself) | `127.0.0.1` only. |
 | Twin's own LLM call (during chat) | Whatever LLM provider that twin's brainstem talks to — outside this spec's scope; same egress that existed before. |
-| Twin's `WorkIQ` agent (if it uses it) | Microsoft Graph — feature-network, fails gracefully when offline. |
+| Twin's work-connector agent (if it uses one) | Microsoft Graph — feature-network, fails gracefully when offline. |
 
 A device that has the operator's `~/.brainstem/rappid.json` and the global brainstem installed (with cached Copilot token if using Copilot) can use this entire network spec end-to-end with no other network egress.
 

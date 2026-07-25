@@ -59,7 +59,7 @@ Then ask your global brainstem in plain English:
 "list my project twins"
 "dispatch this question to all my project twins: 'what's in your project?'"
 "check status of that job"
-"chat with bchydro — ask it what agents it has loaded"
+"chat with example-co — ask it what agents it has loaded"
 ```
 
 The agent's verbs (`hatch`, `list`, `boot`, `chat`, `dispatch`, `job_status`, `await_job`, `stop`) are pure transport. The MESSAGE is always natural language. The global LLM composes; the twins' LLMs answer.
