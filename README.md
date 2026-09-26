@@ -1,5 +1,9 @@
 # RAPP-Network
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/RAPP-Network.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/RAPP-Network.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 > **The network layer on top of [`kody-w/RAPP`](https://github.com/kody-w/RAPP).** Project-anchored twins, ad-hoc on-device neighborhoods, fully managed through natural-language chat with your global brainstem. **One drop-in file** materializes the whole thing. **Offline-first** by default.
 
 ```
